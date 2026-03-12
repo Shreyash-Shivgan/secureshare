@@ -3,7 +3,8 @@
  * Fetch-based HTTP helper with automatic JWT injection.
  */
 
-const API_BASE = "http://localhost:8000";
+const API_BASE = "https://secureshare-production.up.railway.app";
+
 
 function getToken(): string | null {
     return localStorage.getItem("token");
@@ -17,6 +18,7 @@ function authHeaders(): Record<string, string> {
     }
     return headers;
 }
+
 
 // ── Auth ─────────────────────────────────────────────────────────────────────
 
@@ -37,10 +39,12 @@ export async function register(
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password, public_key: publicKey }),
     });
+
     if (!res.ok) {
         const err = await res.json();
         throw new Error(err.detail || "Registration failed");
     }
+
     return res.json();
 }
 
@@ -53,12 +57,15 @@ export async function login(
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),
     });
+
     if (!res.ok) {
         const err = await res.json();
         throw new Error(err.detail || "Login failed");
     }
+
     return res.json();
 }
+
 
 // ── Users ────────────────────────────────────────────────────────────────────
 
@@ -72,9 +79,12 @@ export async function fetchUsers(): Promise<UserInfo[]> {
     const res = await fetch(`${API_BASE}/users`, {
         headers: authHeaders(),
     });
+
     if (!res.ok) throw new Error("Failed to fetch users");
+
     return res.json();
 }
+
 
 // ── Files ────────────────────────────────────────────────────────────────────
 
@@ -95,6 +105,7 @@ export async function uploadFile(
     recipientId: number,
     originalFilename: string
 ): Promise<{ message: string; file_id: number }> {
+
     const formData = new FormData();
     formData.append("file", encryptedBlob, `${originalFilename}.enc`);
     formData.append("encrypted_key", encryptedKey);
@@ -106,10 +117,12 @@ export async function uploadFile(
         headers: authHeaders(),
         body: formData,
     });
+
     if (!res.ok) {
         const err = await res.json();
         throw new Error(err.detail || "Upload failed");
     }
+
     return res.json();
 }
 
@@ -117,16 +130,20 @@ export async function fetchFiles(): Promise<FileInfo[]> {
     const res = await fetch(`${API_BASE}/files`, {
         headers: authHeaders(),
     });
+
     if (!res.ok) throw new Error("Failed to fetch files");
+
     return res.json();
 }
 
 export async function downloadFile(
     fileId: number
 ): Promise<{ data: ArrayBuffer; encryptedKey: string; filename: string }> {
+
     const res = await fetch(`${API_BASE}/download/${fileId}`, {
         headers: authHeaders(),
     });
+
     if (!res.ok) throw new Error("Download failed");
 
     const encryptedKey = res.headers.get("X-Encrypted-Key") || "";
