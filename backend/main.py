@@ -1,4 +1,5 @@
 import os
+from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy import text
@@ -8,18 +9,21 @@ from routes.auth_routes import router as auth_router
 from routes.file_routes import router as file_router
 
 
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Startup
+    Base.metadata.create_all(bind=engine)
+    os.makedirs("storage", exist_ok=True)
+    yield
+    # Shutdown (if needed)
+
+
 app = FastAPI(
     title="SecureShare API",
     description="Zero-trust end-to-end encrypted document sharing platform",
     version="1.0.0",
+    lifespan=lifespan,
 )
-
-
-# Create tables when the app starts
-@app.on_event("startup")
-def startup():
-    Base.metadata.create_all(bind=engine)
-    os.makedirs("storage", exist_ok=True)
 
 
 # CORS configuration
@@ -49,10 +53,7 @@ app.include_router(file_router)
 # Root endpoint
 @app.get("/")
 def root():
-    return {
-        "message": "SecureShare API is running",
-        "version": "1.0.0"
-    }
+    return {"message": "SecureShare API is running", "version": "1.0.0"}
 
 
 # Database health check
@@ -61,12 +62,6 @@ def health_db():
     try:
         with engine.connect() as connection:
             connection.execute(text("SELECT 1"))
-        return {
-            "status": "connected",
-            "database": "PostgreSQL"
-        }
+        return {"status": "connected", "database": "PostgreSQL"}
     except Exception as e:
-        return {
-            "status": "disconnected",
-            "error": str(e)
-        }
+        return {"status": "disconnected", "error": str(e)}
