@@ -3,8 +3,12 @@ SecureShare – PostgreSQL Database configuration
 """
 
 import os
+from dotenv import load_dotenv
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, DeclarativeBase
+
+# Load environment variables from a .env file (for local dev)
+load_dotenv()
 
 DATABASE_URL = os.environ["DATABASE_URL"]  # must exist
 
