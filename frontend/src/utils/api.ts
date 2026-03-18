@@ -157,8 +157,7 @@
  * Fetch-based HTTP helper with automatic JWT injection.
  */
 
-const API_URL = import.meta.env.VITE_API_URL;;
-
+const API_BASE = import.meta.env.VITE_API_URL;;
 
 function getToken(): string | null {
     return localStorage.getItem("token");
